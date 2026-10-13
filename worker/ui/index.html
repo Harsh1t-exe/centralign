@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Worker</title>
+<style>
+:root {
+  --bg: #0e1116; --panel: #161b22; --panel2: #1c232d; --line: #2a3340; --text: #e6edf3; --muted: #8b98a8;
+  --accent: #5b9dff; --ok: #3fb950; --warn: #d29922; --err: #f85149; --violet: #b392f0;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; align-items: center; gap: 16px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 16px; margin: 0; }
+header .meta { color: var(--muted); font-size: 12px; }
+header .controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+select, button, textarea, input { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; }
+button { padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+button.bad { background: var(--err); border-color: var(--err); color: #fff; }
+select { padding: 5px 8px; }
+main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; padding: 16px 20px; height: calc(100vh - 53px); }
+.col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; display: flex; justify-content: space-between; }
+#task { width: 100%; min-height: 64px; padding: 10px; resize: vertical; }
+.row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--panel2); border: 1px solid var(--line); cursor: pointer; color: var(--muted); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip:hover { color: var(--text); border-color: var(--accent); }
+#timeline { flex: 1; overflow-y: auto; min-height: 0; }
+.ev { padding: 6px 0; border-bottom: 1px dashed #222a35; }
+.note { padding: 8px 10px; background: var(--panel2); border-radius: 8px; border-left: 3px solid var(--accent); white-space: pre-wrap; }
+.note.verifier { border-left-color: var(--violet); }
+.tool { display: flex; gap: 8px; align-items: baseline; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; cursor: pointer; }
+.tool .st { width: 14px; display: inline-block; }
+.tool .name { color: var(--accent); }
+.tool.verifier .name { color: var(--violet); }
+.tool .desc { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge { font-size: 10.5px; padding: 1px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; font-family: inherit; }
+.b-write { background: #3a2c0b; color: var(--warn); }
+.b-high_risk { background: #3d1214; color: var(--err); }
+.b-verifier { background: #2c2140; color: var(--violet); }
+pre.preview { display: none; white-space: pre-wrap; max-height: 260px; overflow: auto; background: #0b0e13; border: 1px solid var(--line); border-radius: 6px; padding: 8px; font-size: 12px; margin: 6px 0 0 22px; }
+.tool-wrap.open pre.preview { display: block; }
+.sys { color: var(--muted); font-size: 12.5px; }
+.sys.err { color: var(--err); }
+#screen img { width: 100%; border-radius: 6px; border: 1px solid var(--line); cursor: zoom-in; display: block; }
+#screen .empty { color: var(--muted); padding: 50px 0; text-align: center; }
+#screenUrl { font-size: 11.5px; color: var(--muted); font-family: ui-monospace, Consolas, monospace; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ul.plan { list-style: none; margin: 0; padding: 0; }
+ul.plan li { padding: 3px 0; display: flex; gap: 8px; }
+.s-done { color: var(--ok); } .s-in_progress { color: var(--accent); } .s-blocked { color: var(--err); } .s-skipped { color: var(--muted); text-decoration: line-through; }
+table.kv { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.kv td { padding: 4px 6px; border-bottom: 1px solid #222a35; vertical-align: top; }
+table.kv td:first-child { color: var(--muted); white-space: nowrap; width: 1%; }
+.src { color: var(--muted); font-size: 11.5px; }
+#ask { border-color: var(--warn); box-shadow: 0 0 0 1px var(--warn) inset; display: none; }
+#ask.approval { border-color: var(--err); box-shadow: 0 0 0 1px var(--err) inset; }
+#ask .prompt { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+#ask .details { white-space: pre-wrap; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+#ask input { width: 100%; padding: 7px; }
+.right { overflow-y: auto; }
+.status { font-weight: 700; padding: 2px 8px; border-radius: 5px; font-size: 12px; }
+.st-completed_verified { background: #11351c; color: var(--ok); }
+.st-completed_unverified, .st-needs_user_action, .st-blocked, .st-incomplete { background: #3a2c0b; color: var(--warn); }
+.st-failed, .st-failed_verification, .st-error { background: #3d1214; color: var(--err); }
+.st-running { background: #102a4c; color: var(--accent); }
+#report .summary { font-size: 15px; margin: 8px 0; white-space: pre-wrap; }
+#report h3 { font-size: 12px; color: var(--muted); text-transform: uppercase; margin: 14px 0 6px; }
+#report a { color: var(--accent); }
+.check-pass { color: var(--ok); } .check-fail { color: var(--err); } .check-unknown { color: var(--warn); }
+#lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 10; cursor: zoom-out; }
+#lightbox img { max-width: 95vw; max-height: 95vh; }
+.warnbar { background: #3a2c0b; color: var(--warn); padding: 6px 20px; font-size: 13px; display: none; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; height: auto; } #timeline { max-height: 60vh; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤖 AI Worker</h1>
+  <span class="meta" id="meta"></span>
+  <div class="controls">
+    <label class="meta">Autonomy
+      <select id="autonomy" title="Autonomous: acts on its own; high-risk actions need approval. Supervised: every external change needs approval.">
+        <option value="autonomous">autonomous</option>
+        <option value="supervised">supervised</option>
+      </select>
+    </label>
+    <label class="meta">Sandbox faults
+      <select id="chaos" title="Inject failures into the Acme sandbox to exercise recovery">
+        <option value="">none</option>
+        <option value="submit_fail_once">submit fails once (503)</option>
+        <option value="submit_lost_response">submit saved but 504 shown</option>
+        <option value="session_expire_after=6">session expires mid-task</option>
+        <option value="submit_fail_once,session_expire_after=6">503 + session expiry</option>
+      </select>
+    </label>
+    <button id="resetBtn" title="Restore the Acme sandbox to its initial data">Reset sandbox</button>
+  </div>
+</header>
+<div class="warnbar" id="keywarn">No API key found for the configured model provider. For the free Gemini tier, get a key at aistudio.google.com/apikey and set GEMINI_API_KEY before starting the server.</div>
+<main>
+  <div class="col">
+    <div class="card">
+      <h2>Task</h2>
+      <textarea id="task" placeholder="Describe the outcome you want, e.g. “Find the latest invoice from Globex and enter it into the AP system.”"></textarea>
+      <div class="row"><button class="primary" id="runBtn">Run task</button><span class="meta" id="runInfo"></span></div>
+      <div class="chips" id="examples"></div>
+    </div>
+    <div class="card" id="ask">
+      <h2 id="askTitle">Question</h2>
+      <div class="prompt" id="askPrompt"></div>
+      <div class="details" id="askDetails"></div>
+      <div class="chips" id="askOptions"></div>
+      <div class="row"><input id="askInput" placeholder="Your answer or comment"></div>
+      <div class="row" id="askButtons"></div>
+    </div>
+    <div class="card" style="flex:1; display:flex; flex-direction:column; min-height:0">
+      <h2>Activity <span id="stepInfo"></span></h2>
+      <div id="timeline"><div class="sys">Start a task to see the worker plan, act, observe and verify.</div></div>
+    </div>
+  </div>
+  <div class="col right">
+    <div class="card" id="report" style="display:none"></div>
+    <div class="card"><h2>Agent's screen</h2><div id="screen"><div class="empty">No browser activity yet</div></div><div id="screenUrl"></div></div>
+    <div class="card"><h2>Plan</h2><ul class="plan" id="plan"><li class="sys">—</li></ul></div>
+    <div class="card"><h2>Working memory</h2><table class="kv" id="memory"><tr><td class="sys">—</td></tr></table></div>
+  </div>
+</main>
+<div id="lightbox"><img alt="screenshot"></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let runId = null, source = null, toolRows = {};
+
+let accessCode = '';
+try { accessCode = localStorage.getItem('accessCode') || ''; } catch (_) {}
+
+async function api(path, opts = {}, retried = false) {
+  const headers = {'Content-Type': 'application/json'};
+  if (accessCode) headers['X-Access-Code'] = accessCode;
+  const r = await fetch(path, {headers, ...opts});
+  if (r.status === 401 && !retried) {   // public demo protected by an access code
+    accessCode = prompt('This demo is protected. Enter the access code:') || '';
+    try { localStorage.setItem('accessCode', accessCode); } catch (_) {}
+    return api(path, opts, true);
+  }
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json();
+}
+
+async function init() {
+  const cfg = await api('/api/config');
+  $('#meta').textContent = `${cfg.environment} · ${cfg.provider}/${cfg.model}`;
+  $('#autonomy').value = cfg.autonomy;
+  if (!cfg.has_api_key) $('#keywarn').style.display = 'block';
+  for (const ex of cfg.examples) {
+    const c = document.createElement('span'); c.className = 'chip'; c.textContent = ex; c.title = ex;
+    c.onclick = () => { $('#task').value = ex; }; $('#examples').append(c);
+  }
+}
+
+function addEv(html, cls = '') {
+  const tl = $('#timeline'); const d = document.createElement('div');
+  d.className = 'ev ' + cls; d.innerHTML = html;
+  const atBottom = tl.scrollHeight - tl.scrollTop - tl.clientHeight < 80;
+  tl.append(d); if (atBottom) tl.scrollTop = tl.scrollHeight;
+  return d;
+}
+
+function renderPlan(plan) {
+  const icon = {done: '✔', in_progress: '▶', blocked: '⛔', skipped: '–', pending: '○'};
+  $('#plan').innerHTML = plan.map(s => `<li class="s-${s.status}"><span>${icon[s.status] || '○'}</span><span>${esc(s.step)}</span></li>`).join('');
+}
+
+const memory = {};
+function renderMemory() {
+  $('#memory').innerHTML = Object.entries(memory).map(([k, m]) =>
+    `<tr><td>${esc(k)}</td><td>${esc(m.value)}<div class="src">${esc(m.source || '')}</div></td></tr>`).join('') || '<tr><td class="sys">—</td></tr>';
+}
+
+function showScreen(path, url) {
+  $('#screen').innerHTML = `<img src="/artifacts/${runId}/${path}" alt="agent screen">`;
+  $('#screen img').onclick = e => { $('#lightbox img').src = e.target.src; $('#lightbox').style.display = 'flex'; };
+  $('#screenUrl').textContent = url || '';
+}
+$('#lightbox').onclick = () => $('#lightbox').style.display = 'none';
+
+function showAsk(e) {
+  const box = $('#ask'); box.style.display = 'block';
+  box.className = 'card' + (e.kind === 'approval' ? ' approval' : '');
+  $('#askTitle').textContent = e.kind === 'approval' ? '⚠ Approval needed' : '❓ The worker has a question';
+  $('#askPrompt').textContent = e.prompt; $('#askDetails').textContent = e.details || '';
+  $('#askInput').value = ''; $('#askOptions').innerHTML = ''; $('#askButtons').innerHTML = '';
+  const send = (answer, approved) => api(`/api/runs/${runId}/interactions/${e.id}`, {method: 'POST', body: JSON.stringify({answer, approved})})
+    .then(() => box.style.display = 'none');
+  for (const o of e.options || []) {
+    const c = document.createElement('span'); c.className = 'chip'; c.textContent = o; c.onclick = () => send(o, null); $('#askOptions').append(c);
+  }
+  if (e.kind === 'approval') {
+    const ok = document.createElement('button'); ok.className = 'ok'; ok.textContent = 'Approve';
+    ok.onclick = () => send($('#askInput').value || 'approved', true);
+    const no = document.createElement('button'); no.className = 'bad'; no.textContent = 'Deny';
+    no.onclick = () => send($('#askInput').value || 'denied', false);
+    $('#askButtons').append(ok, no);
+  } else {
+    const b = document.createElement('button'); b.className = 'primary'; b.textContent = 'Send answer';
+    b.onclick = () => send($('#askInput').value, null); $('#askButtons').append(b);
+    $('#askInput').onkeydown = ev => { if (ev.key === 'Enter') b.click(); };
+  }
+  $('#askInput').focus();
+}
+
+function handle(e) {
+  const v = e.actor === 'verifier';
+  switch (e.type) {
+    case 'run_started': addEv(`<span class="sys">▶ Run started · ${esc(e.model)} · ${esc(e.autonomy)} mode</span>`); break;
+    case 'step': $('#stepInfo').textContent = `step ${e.n}/${e.max}`; break;
+    case 'agent_note': addEv(`<div class="note ${v ? 'verifier' : ''}">${v ? '<span class="badge b-verifier">verifier</span> ' : ''}${esc(e.text)}</div>`); break;
+    case 'tool_call': {
+      const badge = e.effect === 'write' || e.effect === 'high_risk' ? `<span class="badge b-${e.effect}">${e.effect.replace('_', '-')}</span>` : '';
+      const args = JSON.stringify(e.args);
+      const label = e.description || args;
+      const d = addEv(`<div class="tool-wrap"><div class="tool ${v ? 'verifier' : ''}" title="${esc(args)}"><span class="st">⏳</span><span class="name">${esc(e.tool)}</span>${badge}<span class="desc">${esc(label)}</span></div><pre class="preview"></pre></div>`);
+      d.querySelector('.tool').onclick = () => d.querySelector('.tool-wrap').classList.toggle('open');
+      toolRows[e.id] = d; break;
+    }
+    case 'tool_result': {
+      const d = toolRows[e.id]; if (!d) break;
+      d.querySelector('.st').textContent = e.is_error ? '✗' : '✓';
+      d.querySelector('.st').style.color = e.is_error ? 'var(--err)' : 'var(--ok)';
+      d.querySelector('.preview').textContent = e.preview;
+      if (e.is_error) d.querySelector('.tool-wrap').classList.add('open');
+      break;
+    }
+    case 'tool_blocked': addEv(`<span class="sys err">⛔ ${esc(e.tool)} blocked (${esc(e.reason)})</span>`); break;
+    case 'screenshot': showScreen(e.path, e.url); break;
+    case 'download': addEv(`<span class="sys">⬇ downloaded <a href="/artifacts/${runId}/files/${esc(e.path)}" target="_blank">${esc(e.path)}</a></span>`); break;
+    case 'file_written': addEv(`<span class="sys">💾 wrote <a href="/artifacts/${runId}/files/${esc(e.path)}" target="_blank">${esc(e.path)}</a></span>`); break;
+    case 'plan_updated': renderPlan(e.plan); break;
+    case 'memory_updated': memory[e.key] = e; renderMemory(); break;
+    case 'interaction_requested': showAsk(e); addEv(`<span class="sys">${e.kind === 'approval' ? '⚠ approval requested' : '❓ question'}: ${esc(e.prompt)}</span>`); break;
+    case 'interaction_resolved':
+      $('#ask').style.display = 'none';
+      addEv(`<span class="sys">${e.kind === 'approval' ? (e.approved ? '✅ approved' : '🚫 denied') : '💬 answered'}: ${esc(e.answer)}</span>`); break;
+    case 'finish_requested': addEv(`<span class="sys">🏁 worker reports <b>${esc(e.status)}</b></span>`); break;
+    case 'verification_started': addEv(`<span class="sys" style="color:var(--violet)">🔎 independent verifier started (fresh context, read-only tools)</span>`); break;
+    case 'verification_result': addEv(`<span class="sys" style="color:var(--violet)">🔎 verdict: <b>${esc(e.verdict.toUpperCase())}</b> — ${esc(e.summary)}</span>`); break;
+    case 'error': addEv(`<span class="sys err">${esc(e.message)}</span>`); break;
+    case 'run_finished': addEv(`<span class="sys">■ finished: ${esc(e.status)}</span>`); finishRun(); break;
+  }
+}
+
+async function finishRun() {
+  $('#runBtn').disabled = false; $('#runInfo').innerHTML = '';
+  const st = await api(`/api/runs/${runId}`); const r = st.report; if (!r) return;
+  const v = r.independent_verification;
+  const outcome = Object.entries(r.outcome || {}).map(([k, val]) => `<tr><td>${esc(k)}</td><td>${esc(typeof val === 'object' ? JSON.stringify(val) : val)}</td></tr>`).join('');
+  const checks = v ? (v.checks || []).map(c => `<tr><td class="check-${c.result}">${c.result === 'pass' ? '✔' : c.result === 'fail' ? '✗' : '?'}</td><td>${esc(c.check)}<div class="src">${esc(c.evidence || '')}</div></td></tr>`).join('') : '';
+  const effects = (r.side_effects || []).map(a => `<tr><td>${a.ok ? '✔' : '✗'}</td><td>${esc(a.description)}${!a.ok && a.http_status ? ` <span class="check-fail">(HTTP ${a.http_status})</span>` : ''}${a.approval ? `<div class="src">${esc(a.approval)}</div>` : ''}</td></tr>`).join('');
+  const shots = (r.screenshots || []).map(s => `<a href="/artifacts/${r.run_id}/${s}" target="_blank">${esc(s)}</a>`).join(' · ');
+  $('#report').style.display = 'block';
+  $('#report').innerHTML = `<h2>Result <span class="status st-${r.status}">${esc(r.status.replace(/_/g, ' '))}</span></h2>
+    <div class="summary">${esc(r.summary)}</div>
+    ${outcome ? `<h3>Outcome</h3><table class="kv">${outcome}</table>` : ''}
+    ${v ? `<h3>Independent verification: ${esc(v.verdict)}</h3><div class="src">${esc(v.summary)}</div><table class="kv">${checks}</table>` : ''}
+    ${effects ? `<h3>Changes made</h3><table class="kv">${effects}</table>` : ''}
+    ${(r.evidence || []).length ? `<h3>Evidence</h3><div class="src">${r.evidence.map(esc).join('<br>')}</div>` : ''}
+    <h3>Artifacts</h3><div class="src">${shots}<br><a href="/artifacts/${r.run_id}/report.md" target="_blank">report.md</a> · <a href="/artifacts/${r.run_id}/trace.jsonl" target="_blank">trace.jsonl</a>
+    · ${r.usage.llm_calls} LLM calls · ${r.duration_s}s${r.estimated_cost_usd != null ? ' · ~$' + r.estimated_cost_usd : ''}</div>`;
+}
+
+$('#runBtn').onclick = async () => {
+  const task = $('#task').value.trim(); if (!task) return;
+  $('#runBtn').disabled = true; $('#timeline').innerHTML = ''; $('#report').style.display = 'none';
+  $('#plan').innerHTML = '<li class="sys">—</li>'; for (const k in memory) delete memory[k]; renderMemory();
+  $('#screen').innerHTML = '<div class="empty">Starting…</div>'; toolRows = {};
+  try {
+    const {id} = await api('/api/runs', {method: 'POST', body: JSON.stringify({task, autonomy: $('#autonomy').value})});
+    runId = id; $('#runInfo').innerHTML = `<span class="status st-running">running</span> run ${id}`;
+    if (source) source.close();
+    source = new EventSource(`/api/runs/${id}/events`);
+    source.onmessage = m => handle(JSON.parse(m.data));
+    source.addEventListener('end', () => source.close());
+  } catch (err) {
+    let msg = err.message; try { msg = JSON.parse(msg).detail || msg; } catch (_) {}
+    addEv(`<span class="sys err">${esc(msg)}</span>`); $('#runBtn').disabled = false;
+  }
+};
+$('#chaos').onchange = () => api('/api/sandbox/chaos', {method: 'POST', body: JSON.stringify({spec: $('#chaos').value})});
+$('#resetBtn').onclick = async () => { await api('/api/sandbox/reset', {method: 'POST'}); $('#chaos').value = ''; $('#resetBtn').textContent = 'Sandbox reset ✓'; setTimeout(() => $('#resetBtn').textContent = 'Reset sandbox', 1500); };
+init();
+</script>
+</body>
+</html>

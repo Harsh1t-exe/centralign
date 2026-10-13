@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}Vendors{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content">
+    <h1>Vendors</h1>
+    <table class="grid">
+      <tr><th>Vendor ID</th><th>Name</th><th>Tax ID</th><th>Remit-to address</th></tr>
+      {% for v in vendors %}
+      <tr><td><a href="/erp/vendors/{{ v.id }}">{{ v.id }}</a></td><td>{{ v.name }}</td><td>{{ v.tax_id }}</td><td>{{ v.address }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+</div>
+{% endblock %}

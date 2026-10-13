@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}AP API{% endblock %}
+{% block body %}
+<section class="content">
+<h1>AP System JSON API</h1>
+<p>All endpoints require the header <code>X-API-Key: &lt;integration key&gt;</code>. Base URL: this server.</p>
+<table class="grid">
+<tr><th>Method</th><th>Path</th><th>Description</th></tr>
+<tr><td>GET</td><td><code>/api/vendors</code></td><td>List vendors (id, name, tax_id, address)</td></tr>
+<tr><td>GET</td><td><code>/api/invoices?vendor_id=&amp;number=&amp;status=</code></td><td>List/filter invoices</td></tr>
+<tr><td>GET</td><td><code>/api/invoices/{id}</code></td><td>Get one invoice by numeric id</td></tr>
+<tr><td>POST</td><td><code>/api/invoices</code></td><td>Create invoice. JSON body: vendor_id, number, invoice_date, due_date (YYYY-MM-DD), amount ("1234.56"), currency, description, po, approved_by. Same validation rules as the UI. Returns 201 or 422 with <code>errors</code>.</td></tr>
+</table>
+</section>
+{% endblock %}

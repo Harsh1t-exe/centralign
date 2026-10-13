@@ -1,0 +1,13 @@
+# Render Blueprint: free Docker web service (512 MB RAM, sleeps after 15 min idle).
+# Deploy: https://render.com/deploy?repo=https://github.com/Harsh1t-exe/centralign
+services:
+  - type: web
+    name: ai-worker
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/config
+    envVars:
+      - key: GEMINI_API_KEY        # free key from https://aistudio.google.com/apikey
+        sync: false
+      - key: WORKER_ACCESS_CODE    # optional: code visitors must enter to start tasks
+        sync: false

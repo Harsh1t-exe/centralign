@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}Invoices{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content">
+    <h1>Vendor invoices</h1>
+    <form class="search" method="get" action="/erp/invoices">
+      <select name="vendor_id" aria-label="Vendor filter">
+        <option value="">All vendors</option>
+        {% for v in vendors %}<option value="{{ v.id }}" {{ 'selected' if v.id==vendor_id }}>{{ v.name }} ({{ v.id }})</option>{% endfor %}
+      </select>
+      <select name="status" aria-label="Status filter">
+        <option value="">Any status</option>
+        {% for s in ["Unpaid", "Paid", "Void"] %}<option {{ 'selected' if s==status }}>{{ s }}</option>{% endfor %}
+      </select>
+      <input type="search" name="q" value="{{ q }}" placeholder="Invoice # or text" aria-label="Search invoices">
+      <button type="submit">Filter</button>
+    </form>
+    <table class="grid">
+      <tr><th>Ref</th><th>Vendor</th><th>Invoice #</th><th>Invoice date</th><th>Due</th><th>Amount</th><th>Status</th></tr>
+      {% for i in items %}
+      <tr><td><a href="/erp/invoices/{{ i.id }}">{{ i.ref }}</a></td><td>{{ i.vendor_name }}</td><td>{{ i.number }}</td>
+          <td>{{ i.invoice_date }}</td><td>{{ i.due_date }}</td><td class="num">{{ i.currency }} {{ i.amount }}</td><td>{{ i.status }}</td></tr>
+      {% else %}<tr><td colspan="7" class="muted">No invoices match.</td></tr>{% endfor %}
+    </table>
+  </section>
+</div>
+{% endblock %}

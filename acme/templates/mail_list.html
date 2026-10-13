@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block app %}mail{% endblock %}
+{% block title %}Mail{% endblock %}
+{% block body %}
+<div class="layout">
+  <aside class="side">
+    <a class="btn" href="/mail/compose">Compose</a>
+    <a href="/mail?folder=inbox" class="{{ 'active' if folder=='inbox' }}">Inbox</a>
+    <a href="/mail?folder=sent" class="{{ 'active' if folder=='sent' }}">Sent</a>
+  </aside>
+  <section class="content">
+    <form class="search" method="get" action="/mail">
+      <input type="hidden" name="folder" value="{{ folder }}">
+      <input type="search" name="q" value="{{ q }}" placeholder="Search mail" aria-label="Search mail">
+      <button type="submit">Search</button>
+    </form>
+    <h1>{{ folder|capitalize }}{% if q %} — results for “{{ q }}”{% endif %}</h1>
+    <table class="grid mail">
+      <tr><th>{{ 'To' if folder=='sent' else 'From' }}</th><th>Subject</th><th>Date</th><th></th></tr>
+      {% for m in items %}
+      <tr>
+        <td>{{ m.to if folder=='sent' else m.from_name }}</td>
+        <td><a href="{{ '/mail/sent/' ~ m.id if folder=='sent' else '/mail/' ~ m.id }}">{{ m.subject }}</a></td>
+        <td>{{ m.date }}</td>
+        <td>{% if m.attachments %}📎 {{ m.attachments|length }}{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" class="muted">No messages.</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}AP Dashboard{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content">
+    <h1>Accounts Payable</h1>
+    <div class="stats">
+      <div class="stat"><span>{{ unpaid_count }}</span>unpaid invoices</div>
+      <div class="stat"><span>USD {{ unpaid_total }}</span>outstanding</div>
+    </div>
+    <h2>Recently entered</h2>
+    <table class="grid">
+      <tr><th>Ref</th><th>Vendor</th><th>Invoice #</th><th>Amount</th><th>Due</th><th>Status</th></tr>
+      {% for i in recent %}
+      <tr><td><a href="/erp/invoices/{{ i.id }}">{{ i.ref }}</a></td><td>{{ i.vendor_name }}</td><td>{{ i.number }}</td>
+          <td class="num">{{ i.currency }} {{ i.amount }}</td><td>{{ i.due_date }}</td><td>{{ i.status }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+</div>
+{% endblock %}

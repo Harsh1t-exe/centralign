@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block app %}wiki{% endblock %}
+{% block title %}{{ page.title if page else "Wiki" }}{% endblock %}
+{% block body %}
+<div class="layout">
+  <aside class="side">
+    <h3>Wiki</h3>
+    <a href="/wiki/ap-policy">Accounts Payable Policy</a>
+    <a href="/wiki/contacts">Department contacts</a>
+  </aside>
+  <section class="content">
+  {% if page %}
+    <h1>{{ page.title }}</h1>
+    <article class="doc">{{ page.html | safe }}</article>
+  {% else %}
+    <h1>Company Wiki</h1>
+    <ul>
+      <li><a href="/wiki/ap-policy">Accounts Payable Policy (AP-POL-004)</a> — how vendor invoices are entered and approved</li>
+      <li><a href="/wiki/contacts">Department contacts</a></li>
+    </ul>
+  {% endif %}
+  </section>
+</div>
+{% endblock %}

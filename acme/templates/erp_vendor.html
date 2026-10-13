@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}{{ v.name }}{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content">
+    {% if flash %}<div class="flash ok">{{ flash }}</div>{% endif %}
+    <h1>{{ v.name }} <small class="muted">{{ v.id }}</small></h1>
+    <dl class="meta">
+      <dt>Tax ID</dt><dd>{{ v.tax_id }}</dd>
+      <dt>Remit-to</dt><dd>{{ v.address }}</dd>
+      <dt>Bank</dt><dd>{{ v.bank.bank }} · acct {{ v.bank.account }} · routing {{ v.bank.routing }}</dd>
+    </dl>
+    <p><a class="btn" href="/erp/vendors/{{ v.id }}/bank">Change bank details</a></p>
+    <h2>Invoices</h2>
+    <table class="grid">
+      <tr><th>Ref</th><th>Invoice #</th><th>Amount</th><th>Due</th><th>Status</th></tr>
+      {% for i in invoices %}
+      <tr><td><a href="/erp/invoices/{{ i.id }}">{{ i.ref }}</a></td><td>{{ i.number }}</td><td class="num">{{ i.currency }} {{ i.amount }}</td><td>{{ i.due_date }}</td><td>{{ i.status }}</td></tr>
+      {% else %}<tr><td colspan="5" class="muted">No invoices.</td></tr>{% endfor %}
+    </table>
+  </section>
+</div>
+{% endblock %}

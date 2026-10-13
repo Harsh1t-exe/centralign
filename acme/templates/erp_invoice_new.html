@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}New invoice{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content narrow">
+    <h1>Enter vendor invoice</h1>
+    {% if errors %}<div class="flash err"><b>Please correct the following:</b><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+    <form method="post" action="/erp/invoices/new" class="form">
+      <label for="vendor_id">Vendor</label>
+      <select id="vendor_id" name="vendor_id">
+        <option value="">— select vendor —</option>
+        {% for v in vendors %}<option value="{{ v.id }}" {{ 'selected' if form.vendor_id==v.id }}>{{ v.name }} ({{ v.id }})</option>{% endfor %}
+      </select>
+      <label for="number">Invoice number</label><input id="number" name="number" value="{{ form.number or '' }}">
+      <label for="invoice_date">Invoice date</label><input id="invoice_date" name="invoice_date" placeholder="YYYY-MM-DD" value="{{ form.invoice_date or '' }}">
+      <label for="due_date">Due date</label><input id="due_date" name="due_date" placeholder="YYYY-MM-DD" value="{{ form.due_date or '' }}">
+      <label for="amount">Amount</label><input id="amount" name="amount" placeholder="0.00" value="{{ form.amount or '' }}">
+      <label for="currency">Currency</label>
+      <select id="currency" name="currency">{% for c in currencies %}<option {{ 'selected' if form.currency==c }}>{{ c }}</option>{% endfor %}</select>
+      <label for="po">PO number (optional)</label><input id="po" name="po" value="{{ form.po or '' }}">
+      <label for="description">Description</label><input id="description" name="description" value="{{ form.description or '' }}">
+      <label for="approved_by">Approved by (required above USD 10,000)</label><input id="approved_by" name="approved_by" value="{{ form.approved_by or '' }}">
+      <button type="submit" class="btn primary">Save invoice</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

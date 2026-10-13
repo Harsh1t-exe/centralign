@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}Sign in{% endblock %}
+{% block body %}
+<section class="content narrow">
+  <h1>AP System — Sign in</h1>
+  {% if info %}<div class="flash warn">{{ info }}</div>{% endif %}
+  {% if error %}<div class="flash err">{{ error }}</div>{% endif %}
+  <form method="post" action="/erp/login" class="form">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="username">Username</label><input id="username" name="username" autocomplete="username">
+    <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password">
+    <button type="submit" class="btn primary">Sign in</button>
+  </form>
+</section>
+{% endblock %}

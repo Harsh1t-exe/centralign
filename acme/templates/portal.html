@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Intranet{% endblock %}
+{% block body %}
+<h1>Acme Intranet</h1>
+<p class="muted">Welcome to the Acme Corp intranet. Choose an application.</p>
+<div class="cards">
+  <a class="card" href="/mail"><h2>✉ Mail</h2><p>Shared Accounts Payable mailbox (ap@acme.example). {{ unread }} messages.</p></a>
+  <a class="card" href="/erp"><h2>₿ AP System</h2><p>Accounts-payable ledger: vendors and vendor invoices. Sign-in required.</p></a>
+  <a class="card" href="/wiki"><h2>📘 Wiki</h2><p>Company policies, procedures and department contacts.</p></a>
+  <a class="card" href="/api/docs"><h2>⚙ AP API</h2><p>JSON API for the AP system (for integrations).</p></a>
+</div>
+{% endblock %}

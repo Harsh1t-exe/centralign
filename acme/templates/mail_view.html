@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block app %}mail{% endblock %}
+{% block title %}{{ msg.subject }}{% endblock %}
+{% block body %}
+<div class="layout">
+  <aside class="side">
+    <a class="btn" href="/mail/compose">Compose</a>
+    <a href="/mail?folder=inbox">Inbox</a>
+    <a href="/mail?folder=sent">Sent</a>
+  </aside>
+  <section class="content">
+    {% if flash %}<div class="flash ok">{{ flash }}</div>{% endif %}
+    <h1>{{ msg.subject }}</h1>
+    <dl class="meta">
+      {% if sent_folder %}<dt>To</dt><dd>{{ msg.to }}</dd>
+      {% else %}<dt>From</dt><dd>{{ msg.from_name }} &lt;{{ msg.from_addr }}&gt;</dd>{% endif %}
+      <dt>Date</dt><dd>{{ msg.date }}</dd>
+    </dl>
+    <pre class="body">{{ msg.body }}</pre>
+    {% if msg.attachments %}
+    <div class="attachments"><h3>Attachments</h3>
+      {% for a in msg.attachments %}<a class="attachment" href="/mail/{{ msg.id }}/attachments/{{ a }}">📄 {{ a }}</a>{% endfor %}
+    </div>
+    {% endif %}
+    {% if not sent_folder %}<p><a class="btn" href="/mail/compose?reply_to={{ msg.id }}">Reply</a></p>{% endif %}
+  </section>
+</div>
+{% endblock %}

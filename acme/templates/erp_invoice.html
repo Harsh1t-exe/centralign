@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}{{ inv.ref }}{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content">
+    {% if flash %}<div class="flash ok">{{ flash }}</div>{% endif %}
+    <h1>{{ inv.ref }} <small class="muted">{{ inv.status }}</small></h1>
+    <dl class="meta">
+      <dt>Vendor</dt><dd><a href="/erp/vendors/{{ inv.vendor_id }}">{{ inv.vendor_name }} ({{ inv.vendor_id }})</a></dd>
+      <dt>Invoice number</dt><dd>{{ inv.number }}</dd>
+      <dt>Invoice date</dt><dd>{{ inv.invoice_date }}</dd>
+      <dt>Due date</dt><dd>{{ inv.due_date }}</dd>
+      <dt>Amount</dt><dd>{{ inv.currency }} {{ inv.amount }}</dd>
+      <dt>PO</dt><dd>{{ inv.po or '—' }}</dd>
+      <dt>Description</dt><dd>{{ inv.description or '—' }}</dd>
+      <dt>Approved by</dt><dd>{{ inv.approved_by or '—' }}</dd>
+      <dt>Entered by</dt><dd>{{ inv.created_by }}</dd>
+    </dl>
+    {% if inv.status != 'Void' %}
+    <form method="post" action="/erp/invoices/{{ inv.id }}/void"><button type="submit" class="btn danger">Void invoice</button></form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

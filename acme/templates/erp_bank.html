@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block app %}erp{% endblock %}
+{% block title %}Change bank details{% endblock %}
+{% block body %}
+<div class="layout">
+  {% include "erp_nav.html" %}
+  <section class="content narrow">
+    <h1>Change bank details — {{ v.name }}</h1>
+    <div class="flash warn">Bank detail changes must follow policy AP-POL-004 §4.</div>
+    <form method="post" action="/erp/vendors/{{ v.id }}/bank" class="form">
+      <label for="bank">Bank name</label><input id="bank" name="bank" value="{{ v.bank.bank }}">
+      <label for="account">Account number</label><input id="account" name="account" value="">
+      <label for="routing">Routing number</label><input id="routing" name="routing" value="">
+      <button type="submit" class="btn danger">Save bank details</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

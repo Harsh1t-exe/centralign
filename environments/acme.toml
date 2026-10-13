@@ -1,0 +1,34 @@
+# Environment profile: everything the worker knows about where it operates.
+# The agent code is environment-agnostic; point it at a different profile to
+# work somewhere else.
+
+name = "Acme Corp (sandbox)"
+start_url = "http://127.0.0.1:8000/"
+description = """
+Acme Corp's intranet. The portal at the start URL links to the company's applications:
+webmail for the shared Accounts Payable mailbox, the AP System (vendor invoices ledger),
+a wiki with company policies and contacts, and a JSON API for the AP System.
+You are working on behalf of the Accounts Payable team.
+"""
+
+# Network guardrails enforced by the harness (not by the model).
+allowed_origins = ["http://127.0.0.1:8000", "http://localhost:8000"]
+blocked_paths = ["/admin"]
+
+# Labels (case-insensitive substrings) that mark an action as high-risk / irreversible.
+# Matching actions always require human approval, whatever the autonomy level.
+high_risk_patterns = ["delete", "void", "remove", "bank details", "wire", "transfer funds", "refund"]
+
+[user]
+name = "Dana Lee"
+role = "AP Manager"
+email = "dana.lee@acme.example"
+
+# Sandbox credentials. The model only ever sees the placeholder names
+# ({{secret:NAME}}); values are substituted at execution time and redacted from
+# everything the model, traces and reports see. Override any value with an
+# environment variable WORKER_SECRET_<NAME>.
+[secrets]
+erp_username = { value = "ap.agent", description = "AP System username" }
+erp_password = { value = "sandbox-Pa55!", description = "AP System password" }
+ap_api_key = { value = "acme-sandbox-key-7f3a", description = "AP System JSON API key (X-API-Key header)" }

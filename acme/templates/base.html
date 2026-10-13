@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}Acme Intranet{% endblock %} · Acme Corp</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="{% block app %}portal{% endblock %}">
+<header class="topbar">
+  <a class="brand" href="/">▲ Acme Corp</a>
+  <nav>
+    <a href="/mail">Mail</a>
+    <a href="/erp">AP System</a>
+    <a href="/wiki">Wiki</a>
+    <a href="/api/docs">API</a>
+  </nav>
+  {% if user %}<span class="who">Signed in as <b>{{ user }}</b> · <a href="/erp/logout">Sign out</a></span>{% endif %}
+</header>
+<main>
+{% block body %}{% endblock %}
+</main>
+</body>
+</html>

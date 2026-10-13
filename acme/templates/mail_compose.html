@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block app %}mail{% endblock %}
+{% block title %}Compose{% endblock %}
+{% block body %}
+<section class="content narrow">
+  <h1>New message</h1>
+  {% if error %}<div class="flash err">{{ error }}</div>{% endif %}
+  <form method="post" action="/mail/send" class="form">
+    <label for="to">To</label><input id="to" name="to" value="{{ to }}">
+    <label for="subject">Subject</label><input id="subject" name="subject" value="{{ subject }}">
+    <label for="body">Message</label><textarea id="body" name="body" rows="12">{{ body }}</textarea>
+    <button type="submit" class="btn primary">Send</button>
+  </form>
+</section>
+{% endblock %}
